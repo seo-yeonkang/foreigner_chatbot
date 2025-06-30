@@ -160,7 +160,7 @@ def generate_answer(prompt: str, model, tokenizer, max_length: int = None, tempe
                 pad_token_id=tokenizer.pad_token_id,
                 eos_token_id=tokenizer.eos_token_id,
                 # 덮어쓰기 방식
-                early_stopping=None          # 값만 None 으로 재정의
+                early_stopping=0          # 값만 None 으로 재정의
             )
 
                     

@@ -104,64 +104,24 @@ def load_generation_models():
         st.error(f"생성 모델 로드 실패: {str(e)}")
         return None, None
 
-def generate_answer(prompt: str, model, tokenizer, max_length: int = None, temperature: float = None):
-    """
-    답변 생성
-    
-    Args:
-        prompt (str): 입력 프롬프트
-        model: 생성 모델
-        tokenizer: 토크나이저
-        max_length (int): 최대 생성 길이
-        temperature (float): 생성 온도
-    
-    Returns:
-        str: 생성된 답변
-    """
-    
-    if max_length is None:
-        max_length = config.MAX_GENERATION_LENGTH
-    if temperature is None:
-        temperature = config.TEMPERATURE
-    
-    try:
-        # 입력 토큰화
-        inputs = tokenizer(
-            prompt,
-            return_tensors="pt",
-            truncation=True,
-            max_length=config.MAX_INPUT_LENGTH,
-            padding=True
-        )
 
-        # GPU 사용 가능하면 GPU로 이동
-        device = next(model.parameters()).device
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-        inputs.pop("token_type_ids", None)
 
-        bos_id = None
+def generate_answer(prompt: str, model, tokenizer) -> str:
+    inputs = tokenizer(prompt,
+                       return_tensors="pt",
+                       truncation=True,
+                       max_length=512).to(model.device)
 
-        if model.config.model_type in ("t5", "mt5"):       # viT5, mT5 등
-            bos_id = tokenizer.convert_tokens_to_ids("<pad>")
-        
-        # 답변 생성
-        with torch.no_grad():
-
-            outputs = model.generate(
-                **inputs,
-                max_length=128,
-                temperature=temperature or config.TEMPERATURE,
-                top_p=config.TOP_P,
-                do_sample=(temperature or 0) > 0,
-                num_beams=1,
-                decoder_start_token_id=bos_id,
-                repetition_penalty=1.2,
-                no_repeat_ngram_size=3,
-                pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id,
-                # 덮어쓰기 방식
-                early_stopping=0          # 값만 None 으로 재정의
-            )
+    output_ids = model.generate(
+        **inputs,
+        max_new_tokens=120,      # 법률 Q&A면 2~5문장에 충분
+        do_sample=True,          # ★ Sampling 활성화
+        top_p=0.92,              #   (nucleus)
+        temperature=0.7,         #   + 약간의 randomness
+        repetition_penalty=1.2,  # 중복 완화
+        no_repeat_ngram_size=4,  # 4-gram 반복 방지
+    )
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
 
                     
         # 디코딩

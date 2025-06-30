@@ -124,22 +124,7 @@ def generate_answer(prompt: str, model, tokenizer) -> str:
     return tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
 
                     
-        # 디코딩
-        generated_text = tokenizer.decode(
-            outputs[0], 
-            skip_special_tokens=True,
-            clean_up_tokenization_spaces=True
-        )
-        
-        # 프롬프트 부분 제거 (mT5의 경우)
-        if generated_text.startswith(prompt):
-            generated_text = generated_text[len(prompt):].strip()
-        
-        return generated_text
-        
-    except Exception as e:
-        st.error(f"답변 생성 실패: {str(e)}")
-        return "죄송합니다. 답변 생성 중 오류가 발생했습니다."
+
 
 def generate_streaming_answer(prompt: str, model, tokenizer, max_length: int = None):
     """

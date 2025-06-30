@@ -149,17 +149,20 @@ def generate_answer(prompt: str, model, tokenizer, max_length: int = None, tempe
 
             outputs = model.generate(
                 **inputs,
-                max_length = 128,
-                temperature = temperature or config.TEMPERATURE,
-                top_p = config.TOP_P,
-                do_sample = (temperature or 0) > 0,
-                num_beams = 1,
-                decoder_start_token_id = bos_id,               # ← None 이면 무시되고 config 값 사용
-                repetition_penalty = 1.2,
-                no_repeat_ngram_size = 3,
-                pad_token_id = tokenizer.pad_token_id,
-                eos_token_id = tokenizer.eos_token_id,
+                max_length=128,
+                temperature=temperature or config.TEMPERATURE,
+                top_p=config.TOP_P,
+                do_sample=(temperature or 0) > 0,
+                num_beams=1,
+                decoder_start_token_id=bos_id,
+                repetition_penalty=1.2,
+                no_repeat_ngram_size=3,
+                pad_token_id=tokenizer.pad_token_id,
+                eos_token_id=tokenizer.eos_token_id,
+                # 덮어쓰기 방식
+                early_stopping=None          # 값만 None 으로 재정의
             )
+
                     
         # 디코딩
         generated_text = tokenizer.decode(
